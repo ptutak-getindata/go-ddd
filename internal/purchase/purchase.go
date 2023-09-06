@@ -6,6 +6,7 @@ import (
 	store "coffeeco/internal/store"
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/Rhymond/go-money"
@@ -59,7 +60,7 @@ func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase) error
 			return errors.New("error charging card")
 		}
 	case payment.MEANS_CASH:
-		// Payed by cash, nothing to do
+		log.Println("cash payment")
 	default:
 		return errors.New("invalid payment means")
 	}
