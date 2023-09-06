@@ -2,10 +2,12 @@ package purchase
 
 import (
 	coffeeco "coffeeco/internal"
+	"coffeeco/internal/loyalty"
 	"coffeeco/internal/payment"
-	store "coffeeco/internal/store"
+	"coffeeco/internal/store"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -50,7 +52,7 @@ type Service struct {
 	purchaseRepo Repository
 }
 
-func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase) error {
+func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase, coffeeBuxCard *loyalty.CoffeeBux) error {
 	if err := purchase.validateAndEnrich(); err != nil {
 		return err
 	}
@@ -61,11 +63,18 @@ func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase) error
 		}
 	case payment.MEANS_CASH:
 		log.Println("cash payment")
+	case payment.MEANS_COFFEEBUX:
+		if err := coffeeBuxCard.Pay(ctx, purchase.ProductsToPurchase); err != nil {
+			return fmt.Errorf("error paying with coffeeBux: %w", err)
+		}
 	default:
 		return errors.New("invalid payment means")
 	}
 	if err := s.purchaseRepo.Store(ctx, purchase); err != nil {
 		return errors.New("error storing purchase")
+	}
+	if coffeeBuxCard != nil {
+		coffeeBuxCard.AddStamp()
 	}
 	return nil
 }
