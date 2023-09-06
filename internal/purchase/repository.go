@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Rhymond/go-money"
-	"go.mongodb.org/mongo-driver/internal/uuid"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
