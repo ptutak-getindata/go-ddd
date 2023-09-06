@@ -14,7 +14,7 @@ import (
 var ErrNoDiscount = errors.New("no discount available")
 
 type Repository interface {
-	GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int, error)
+	GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int64, error)
 }
 
 type MongoRepository struct {
@@ -32,8 +32,8 @@ func NewMongoRepo(ctx context.Context, connectionString string) (*MongoRepositor
 	}, nil
 }
 
-func (mr MongoRepository) GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (float32, error) {
-	var discount float32
+func (mr MongoRepository) GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int64, error) {
+	var discount int64
 	if err := mr.storeDiscounts.FindOne(ctx, bson.D{{"store_id", storeID.String()}}).Decode(&discount); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return 0, ErrNoDiscount
@@ -41,4 +41,11 @@ func (mr MongoRepository) GetStoreDiscount(ctx context.Context, storeID uuid.UUI
 		return 0, fmt.Errorf("failed to get store discount: %w", err)
 	}
 	return discount, nil
+}
+
+func (m MongoRepository) Ping(ctx context.Context) error {
+	if _, err := m.storeDiscounts.EstimatedDocumentCount(ctx); err != nil {
+		return fmt.Errorf("failed to ping DB: %w", err)
+	}
+	return nil
 }

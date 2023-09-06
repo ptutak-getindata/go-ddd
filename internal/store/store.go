@@ -17,6 +17,10 @@ type Service struct {
 	storeRepo Repository
 }
 
+func NewService(repo Repository) *Service {
+	return &Service{storeRepo: repo}
+}
+
 func (s Service) GetStoreSpecificDiscount(ctx context.Context, storeID uuid.UUID) (float32, error) {
 	dis, err := s.storeRepo.GetStoreDiscount(ctx, storeID)
 	if err != nil {

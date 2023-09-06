@@ -51,6 +51,10 @@ type StoreService interface {
 	GetStoreSpecificDiscount(ctx context.Context, storeID uuid.UUID) (float32, error)
 }
 
+func NewService(cardService CardChargeService, purchaseRepo Repository, storeService StoreService) *Service {
+	return &Service{cardService: cardService, purchaseRepo: purchaseRepo, storeService: storeService}
+}
+
 type Service struct {
 	cardService  CardChargeService
 	purchaseRepo Repository
@@ -86,7 +90,7 @@ func (s Service) CompletePurchase(
 		return errors.New("invalid payment means")
 	}
 
-	if err := s.purchaseRepo.Store(ctx, purchase); err != nil {
+	if err := s.purchaseRepo.Store(ctx, *purchase); err != nil {
 		return errors.New("error storing purchase")
 	}
 
@@ -106,8 +110,4 @@ func (s *Service) calculateStoreSpecificDiscount(ctx context.Context, storeID uu
 		purchase.total = *purchase.total.Multiply(int64(100 - discount))
 	}
 	return nil
-}
-
-type Service struct {
-	storeRepo Repository
 }
